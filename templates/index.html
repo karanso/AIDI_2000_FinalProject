@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Rental Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .chat-container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #chat-window {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        #user-input-form {
+            display: flex;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px 0 0 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        #send-button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        p {
+            margin: 5px 0;
+            padding: 5px 10px;
+            background-color: #f2f2f2;
+            border-radius: 6px;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #dff0d8;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Room Rental Chatbot</h1>
+        <div id="chat-window">
+            <p>Welcome to the Room Rental Chatbot! I can help you with information about renting rooms in Ontario.</p>
+        </div>
+        <form id="user-input-form">
+            <input type="text" id="user-input" placeholder="Type your message here...">
+            <button type="submit" id="send-button">Send</button>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('user-input-form');
+        const inputField = document.getElementById('user-input');
+        const chatWindow = document.getElementById('chat-window');
+    
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userInput = inputField.value.trim(); // Remove leading and trailing spaces
+            if (userInput === '') return; // If input is empty, do nothing
+            inputField.value = '';
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `user_input=${encodeURIComponent(userInput)}` // Encode user input to handle special characters
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log('Received response:', data); // Log the received response
+                displayMessage('You: ' + userInput, 'user-message');
+                displayMessage('Predicted Intent: ' + data.intent);
+                displayMessage('Confidence Score: ' + data.confidence.toFixed(2) + '%');
+                displayMessage('Bot: ' + data.response, 'bot-message'); // Add a CSS class for bot messages
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    
+        function displayMessage(message, cssClass = '') {
+            const p = document.createElement('p');
+            p.textContent = message;
+            if (cssClass) {
+                p.classList.add(cssClass);
+            }
+            chatWindow.appendChild(p);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    </script>
+    
+</body>
+</html>
